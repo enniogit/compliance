@@ -1,0 +1,119 @@
+[{
+	"id": "a1a38627.d11218",
+	"type": "http response",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"statusCode": "",
+	"headers": {
+		
+	},
+	"x": 790,
+	"y": 180,
+	"wires": []
+},{
+	"id": "1d6a5f32.931621",
+	"type": "http in",
+	"z": "8cb5f64b.41d138",
+	"name": "BOT Home Page",
+	"url": "/bot3",
+	"method": "get",
+	"upload": false,
+	"swaggerDoc": "",
+	"x": 216,
+	"y": 179.78488159179687,
+	"wires": [["12afb4bc.0bfbdb"]]
+},{
+	"id": "9f512930.9bfa58",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "Preprocessing",
+	"func": "msg.params = msg.params || {};\nmsg.params.context = msg.payload.context;\nmsg.payload = msg.payload.message;\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"x": 520,
+	"y": 280.78487396240234,
+	"wires": [["1e75509f.f05bdf",
+	"142a43f4.c1e2dc"]]
+},{
+	"id": "249d40e5.c535c",
+	"type": "http in",
+	"z": "8cb5f64b.41d138",
+	"name": "BOT REST API",
+	"url": "/botchat",
+	"method": "post",
+	"upload": false,
+	"swaggerDoc": "",
+	"x": 220,
+	"y": 460.78487396240234,
+	"wires": [["9f512930.9bfa58"]]
+},{
+	"id": "1e75509f.f05bdf",
+	"type": "watson-conversation-v1",
+	"z": "8cb5f64b.41d138",
+	"name": "Conversation",
+	"workspaceid": "4d346989-19b4-4933-b3ec-a21b27b0719c",
+	"multiuser": false,
+	"context": true,
+	"empty-payload": false,
+	"default-endpoint": true,
+	"service-endpoint": "https://gateway.watsonplatform.net/conversation/api",
+	"x": 730,
+	"y": 260,
+	"wires": [["978fac81.4a414"]]
+},{
+	"id": "29d05f79.48b84",
+	"type": "join",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"mode": "custom",
+	"build": "merged",
+	"property": "payload",
+	"propertyType": "msg",
+	"key": "topic",
+	"joiner": "\\n",
+	"joinerType": "str",
+	"accumulate": true,
+	"timeout": "",
+	"count": "1",
+	"x": 990,
+	"y": 460.78487396240234,
+	"wires": [["36d663da.e2173c",
+	"1666079b.cca6d8"]]
+},{
+	"id": "12afb4bc.0bfbdb",
+	"type": "template",
+	"z": "8cb5f64b.41d138",
+	"name": "Conversation BOT Template",
+	"field": "payload",
+	"fieldType": "msg",
+	"format": "handlebars",
+	"syntax": "mustache",
+	"template": "<html>\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>\n\t  My BOT\n\t</title>\n\t<link rel=\"stylesheet\"\n        type=\"text/css\"\n        href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" />\n  </head>\n  <body>\n\n    <div class=\"container\">\n      <div id=\"no-script\"class=\"bg-info\">\n        This application needs JavaScript enabled in your browser!\n      </div>\n      <div id=\"id_contextdump\"></div>\n\n\t  <br><img src=\"http://www.appaltiecontratti.it/wp-content/uploads/logo-INPS.png\" height=\"200\" width=\"200\"></br>\n      <h1>SW Compliance Advisor</h1>\n      <div id=id_botchathistory>\n\t  </div>\n\n\n\t  <div>\n\t      <form onsubmit=\"return false;\">\n            <label for=\"id_chattext\">Your Input: </label>\n            <input type=\"text\" name=\"chattext\" id=\"id_chattext\">\n\t      </form>\n\t      <button id=\"chatbutton\" onclick=\"javascript:onChatClick()\">Send</button>\n\t  </div>\n    </div>\n    <script type=\"text/javascript\" src=\"https://code.jquery.com/jquery-2.1.4.min.js\"></script>\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>\n\n    <script type=\"text/javascript\">\n\n      $(document).ready(function() {\n          javascriptCheck();\n          invokeAjax('init')\n      });\n\n      $(\"#id_chattext\").keyup(function(event){\n        event.preventDefault();\n        if(event.keyCode == 13){\n            $(\"#chatbutton\").click();\n        }\n      });\n      // if javascript is enabled on the browser then can\n      // remove the warning message\n      function javascriptCheck() {\n        $('#no-script').remove();\n      }\n\n      function createNewDiv(who, message) {\n          console.log(message)\n        var txt = who + ' : ' + message;\n        return $('<div></div>').html(txt);\n      }\n\n      function chat(person, txt) {\n        $('#id_botchathistory').append(createNewDiv(person, txt));\n      }\n\n      function processOK(response) {\n        for (var r in response.output.text) {\n          chat('Bot', response.output.text[r]);\n        }\n     /*chat('Bot', response.discovery);*/\n        $('#id_contextdump').data('convContext', response.context);\n      }\n\n      function processNotOK() {\n        chat('Error', 'Error whilst attempting to talk to Bot');\n      }\n\n      function invokeAjax(message) {\n        console.log($('#id_contextdump').data('convContext'))\n        $.ajax({\n          type: 'POST',\n          url: 'botchat',\n          data: { message, context: $('#id_contextdump').data('convContext')},\n          success: processOK,\n          error: processNotOK\n        });\n      }\n\n      // User has entered some text.\n      function onChatClick() {\n        var txt = $('#id_chattext').val();\n        $('#id_chattext').val('');\n        chat('You', txt);\n        invokeAjax(txt);\n      }\n      \n    </script>\n  </body>\n</html>\n",
+	"output": "str",
+	"x": 497.72216796875,
+	"y": 179.84040069580078,
+	"wires": [["a1a38627.d11218"]]
+},{
+	"id": "142a43f4.c1e2dc",
+	"type": "debug",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"active": false,
+	"console": "false",
+	"complete": "true",
+	"x": 681.25,
+	"y": 434.0348434448242,
+	"wires": []
+},{
+	"id": "978fac81.4a414",
+	"type": "http response",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"statusCode": "",
+	"headers": {
+		
+	},
+	"x": 934,
+	"y": 260,
+	"wires": []
+}]
