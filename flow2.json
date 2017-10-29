@@ -1,0 +1,208 @@
+[{
+	"id": "a1a38627.d11218",
+	"type": "http response",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"statusCode": "",
+	"headers": {
+		
+	},
+	"x": 790,
+	"y": 180,
+	"wires": []
+},{
+	"id": "1d6a5f32.931621",
+	"type": "http in",
+	"z": "8cb5f64b.41d138",
+	"name": "BOT Home Page",
+	"url": "/bot3",
+	"method": "get",
+	"upload": false,
+	"swaggerDoc": "",
+	"x": 216,
+	"y": 179.78488159179687,
+	"wires": [["12afb4bc.0bfbdb"]]
+},{
+	"id": "9f512930.9bfa58",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "Preprocessing",
+	"func": "msg.params = msg.params || {};\nmsg.params.context = msg.payload.context;\nmsg.payload = msg.payload.message;\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"x": 440,
+	"y": 458.7848815917969,
+	"wires": [["1e75509f.f05bdf",
+	"142a43f4.c1e2dc"]]
+},{
+	"id": "249d40e5.c535c",
+	"type": "http in",
+	"z": "8cb5f64b.41d138",
+	"name": "BOT REST API",
+	"url": "/botchat",
+	"method": "post",
+	"upload": false,
+	"swaggerDoc": "",
+	"x": 220,
+	"y": 460.78487396240234,
+	"wires": [["9f512930.9bfa58"]]
+},{
+	"id": "1e75509f.f05bdf",
+	"type": "watson-conversation-v1",
+	"z": "8cb5f64b.41d138",
+	"name": "Conversation",
+	"workspaceid": "4d346989-19b4-4933-b3ec-a21b27b0719c",
+	"multiuser": false,
+	"context": true,
+	"empty-payload": false,
+	"default-endpoint": true,
+	"service-endpoint": "https://gateway.watsonplatform.net/conversation/api",
+	"x": 658,
+	"y": 459,
+	"wires": [["15b09f74.f47531",
+	"9248a616.7c1628"]]
+},{
+	"id": "12afb4bc.0bfbdb",
+	"type": "template",
+	"z": "8cb5f64b.41d138",
+	"name": "Conversation BOT Template",
+	"field": "payload",
+	"fieldType": "msg",
+	"format": "handlebars",
+	"syntax": "mustache",
+	"template": "<html>\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>\n\t  My BOT\n\t</title>\n\t<link rel=\"stylesheet\"\n        type=\"text/css\"\n        href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" />\n  </head>\n  <body>\n\n    <div class=\"container\">\n      <div id=\"no-script\"class=\"bg-info\">\n        This application needs JavaScript enabled in your browser!\n      </div>\n      <div id=\"id_contextdump\"></div>\n\n\t  <br><img src=\"http://www.appaltiecontratti.it/wp-content/uploads/logo-INPS.png\" height=\"200\" width=\"200\"></br>\n      <h1>SW Compliance Advisor</h1>\n      <div id=id_botchathistory>\n\t  </div>\n\n\n\t  <div>\n\t      <form onsubmit=\"return false;\">\n            <label for=\"id_chattext\">Your Input: </label>\n            <input type=\"text\" name=\"chattext\" id=\"id_chattext\">\n\t      </form>\n\t      <button id=\"chatbutton\" onclick=\"javascript:onChatClick()\">Send</button>\n\t  </div>\n    </div>\n    <script type=\"text/javascript\" src=\"https://code.jquery.com/jquery-2.1.4.min.js\"></script>\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>\n\n    <script type=\"text/javascript\">\n\n      $(document).ready(function() {\n          javascriptCheck();\n          invokeAjax('init')\n      });\n\n      $(\"#id_chattext\").keyup(function(event){\n        event.preventDefault();\n        if(event.keyCode == 13){\n            $(\"#chatbutton\").click();\n        }\n      });\n      // if javascript is enabled on the browser then can\n      // remove the warning message\n      function javascriptCheck() {\n        $('#no-script').remove();\n      }\n\n      function createNewDiv(who, message) {\n          console.log(message)\n        var txt = who + ' : ' + message;\n        return $('<div></div>').html(txt);\n      }\n\n      function chat(person, txt) {\n        $('#id_botchathistory').append(createNewDiv(person, txt));\n      }\n\n      function processOK(response) {\n        for (var r in response.output.text) {\n          chat('Bot', response.output.text[r]);\n        }\n     /*chat('Bot', response.discovery);*/\n        $('#id_contextdump').data('convContext', response.context);\n      }\n\n      function processNotOK() {\n        chat('Error', 'Error whilst attempting to talk to Bot');\n      }\n\n      function invokeAjax(message) {\n        console.log($('#id_contextdump').data('convContext'))\n        $.ajax({\n          type: 'POST',\n          url: 'botchat',\n          data: { message, context: $('#id_contextdump').data('convContext')},\n          success: processOK,\n          error: processNotOK\n        });\n      }\n\n      // User has entered some text.\n      function onChatClick() {\n        var txt = $('#id_chattext').val();\n        $('#id_chattext').val('');\n        chat('You', txt);\n        invokeAjax(txt);\n      }\n      \n    </script>\n  </body>\n</html>\n",
+	"output": "str",
+	"x": 497.72216796875,
+	"y": 179.84040069580078,
+	"wires": [["a1a38627.d11218"]]
+},{
+	"id": "142a43f4.c1e2dc",
+	"type": "debug",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"active": false,
+	"console": "false",
+	"complete": "true",
+	"x": 644.25,
+	"y": 397.03485107421875,
+	"wires": []
+},{
+	"id": "978fac81.4a414",
+	"type": "http response",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"statusCode": "",
+	"headers": {
+		
+	},
+	"x": 1925.3333740234375,
+	"y": 449.9999694824219,
+	"wires": []
+},{
+	"id": "9248a616.7c1628",
+	"type": "cloudant in",
+	"z": "8cb5f64b.41d138",
+	"name": "accesso al database",
+	"cloudant": "",
+	"database": "prodotti",
+	"service": "Cloudant NoSQL DB-wr",
+	"search": "_all_",
+	"design": "design document",
+	"index": "indexname:nome corrente",
+	"x": 816.1666259765625,
+	"y": 559.4166259765625,
+	"wires": [["15b09f74.f47531"]]
+},{
+	"id": "58cdb069.ff492",
+	"type": "debug",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"active": true,
+	"console": "false",
+	"complete": "true",
+	"x": 1480.6666259765625,
+	"y": 540.6666870117187,
+	"wires": []
+},{
+	"id": "cd1c0bcd.ddc908",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "mette in versioneprodotto il valore dal DB",
+	"func": "msg.payload.versioneprodotto=\"bbbbb\";\nvar massimo=1;\nvar r=0;\nfor (r=0; r<=massimo; r++) {\nif(msg.payload.context.prodotto !== \"\" && msg.cloudant.rows[r].doc.nomecorrente == msg.payload.context.prodotto) {\nmsg.payload.versioneprodotto=msg.cloudant.rows[r].doc.partnumber + \"   \" + msg.cloudant.rows[r].doc.descrizione;\n}\nelse {\nmsg.payload.versioneprodotto=\"non trovato\";\n}\n}\nreturn msg;",
+	"outputs": "1",
+	"noerr": 0,
+	"x": 1489.8333740234375,
+	"y": 666.1166381835937,
+	"wires": [["3ea6580a.ee2e78"]]
+},{
+	"id": "94748271.ab131",
+	"type": "change",
+	"z": "8cb5f64b.41d138",
+	"name": "Setta msg.payload.versioneprodotto",
+	"rules": [{
+		"t": "set",
+		"p": "payload.versioneprodotto",
+		"pt": "msg",
+		"to": "aaa",
+		"tot": "str"
+	}],
+	"action": "",
+	"property": "",
+	"from": "",
+	"to": "",
+	"reg": false,
+	"x": 1231.333251953125,
+	"y": 571,
+	"wires": [["cd1c0bcd.ddc908",
+	"58cdb069.ff492"]]
+},{
+	"id": "15b09f74.f47531",
+	"type": "join",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"mode": "custom",
+	"build": "merged",
+	"property": "payload",
+	"propertyType": "msg",
+	"key": "topic",
+	"joiner": "\\n",
+	"joinerType": "str",
+	"accumulate": true,
+	"timeout": "",
+	"count": "1",
+	"x": 937,
+	"y": 458,
+	"wires": [["bb4250b0.202cf"]]
+},{
+	"id": "3ea6580a.ee2e78",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "Compone messaggio output",
+	"func": "var temporaneo = msg.payload.output.text[0];\nif (msg.payload.context.prodotto !== \"\") { \n    msg.payload.output.text[0] = \"<b>Versione presente a contratto  :\" +  msg.payload.versioneprodotto + \"</b> <br>\" + temporaneo;\n    msg.payload.versioneprodotto = \"Non Trovato\";\n}\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"x": 1750.0001220703125,
+	"y": 584.9998168945312,
+	"wires": [["978fac81.4a414"]]
+},{
+	"id": "bb4250b0.202cf",
+	"type": "switch",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"property": "payload.input.text",
+	"propertyType": "msg",
+	"rules": [{
+		"t": "eq",
+		"v": "init",
+		"vt": "str"
+	},
+	{
+		"t": "else"
+	}],
+	"checkall": "true",
+	"outputs": 2,
+	"x": 1064,
+	"y": 458,
+	"wires": [["978fac81.4a414"],
+	["94748271.ab131"]]
+}]
