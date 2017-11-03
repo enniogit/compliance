@@ -1,0 +1,239 @@
+[{
+	"id": "3ea6580a.ee2e78",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "Compone messaggio output",
+	"func": "var temporaneo = msg.payload.output.text[0];\nif (msg.payload.context.intenzione==\"INFO\" || msg.payload.context.intenzione==\"\"){\nif (msg.payload.context.prodotto !== \"\") { \n    msg.payload.output.text[0] = \"<b>Componenti presenti a contratto  :</b> <br>\" +  msg.payload.versioneprodotto + \"<br>\" + temporaneo;\n    msg.payload.versioneprodotto = \"non trovato\";\n}}\nif (msg.payload.context.intenzione==\"METRICA\"){\n  if (msg.payload.context.prodotto !== \"\") { \n    msg.payload.output.text[0] = \"<b>Valori di licenza presenti a contratto  :</b> <br>\" +  msg.payload.metricaprodotto + \"<br>\" + temporaneo;\n    msg.payload.metricaprodotto = \"non trovato\";  \n}}\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"x": 1834.0001220703125,
+	"y": 456.99981689453125,
+	"wires": [["978fac81.4a414"]]
+},{
+	"id": "cd1c0bcd.ddc908",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "mette in versioneprodotto il valore dal DB",
+	"func": "msg.payload.versioneprodotto=\" \";\nmsg.payload.metricaprodotto=\" \";\n//var massimo=5;\n//var r=0;\n//for (r=0; r<=massimo; r++) {\nfor (var r in msg.cloudant.rows) {\nif(msg.payload.context.prodotto !== \"\" && msg.cloudant.rows[r].doc.nomecorrente == msg.payload.context.prodotto) {\nmsg.payload.versioneprodotto=\"<b> Part Number </b>:  \" + msg.cloudant.rows[r].doc.partnumber + \"     \" + \"<b>Descrizione: </b> \" + msg.cloudant.rows[r].doc.descrizione + \"<br>\" + msg.payload.versioneprodotto;\nmsg.payload.metricaprodotto=\"<b> Part Number </b>:  \" + msg.cloudant.rows[r].doc.partnumber + \"     \" + \"<b> Unità di Misura </b>:  \" + msg.cloudant.rows[r].doc.unitadimisura + \"   \" + \"<b> Quantità</b>:  \" + msg.cloudant.rows[r].doc.quantita + \"<br>\" + msg.payload.metricaprodotto;\n}\nelse {\n}\n}\nreturn msg;",
+	"outputs": "1",
+	"noerr": 0,
+	"x": 1633.8333740234375,
+	"y": 532.1166381835937,
+	"wires": [["3ea6580a.ee2e78",
+	"58cdb069.ff492"]]
+},{
+	"id": "978fac81.4a414",
+	"type": "http response",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"statusCode": "",
+	"headers": {
+		
+	},
+	"x": 2097.33349609375,
+	"y": 332,
+	"wires": []
+},{
+	"id": "58cdb069.ff492",
+	"type": "debug",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"active": false,
+	"console": "false",
+	"complete": "true",
+	"x": 1930.66650390625,
+	"y": 532.6666870117187,
+	"wires": []
+},{
+	"id": "94748271.ab131",
+	"type": "change",
+	"z": "8cb5f64b.41d138",
+	"name": "Setta msg.payload.versioneprodotto",
+	"rules": [{
+		"t": "set",
+		"p": "payload.versioneprodotto",
+		"pt": "msg",
+		"to": "aaa",
+		"tot": "str"
+	},
+	{
+		"t": "set",
+		"p": "payload.metricaprodotto",
+		"pt": "msg",
+		"to": "aaa",
+		"tot": "str"
+	}],
+	"action": "",
+	"property": "",
+	"from": "",
+	"to": "",
+	"reg": false,
+	"x": 1467.333251953125,
+	"y": 455,
+	"wires": [["cd1c0bcd.ddc908"]]
+},{
+	"id": "bb4250b0.202cf",
+	"type": "switch",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"property": "payload.input.text",
+	"propertyType": "msg",
+	"rules": [{
+		"t": "eq",
+		"v": "init",
+		"vt": "str"
+	},
+	{
+		"t": "else"
+	}],
+	"checkall": "true",
+	"outputs": 2,
+	"x": 1398,
+	"y": 338,
+	"wires": [["978fac81.4a414"],
+	["94748271.ab131"]]
+},{
+	"id": "15b09f74.f47531",
+	"type": "join",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"mode": "custom",
+	"build": "merged",
+	"property": "payload",
+	"propertyType": "msg",
+	"key": "topic",
+	"joiner": "\\n",
+	"joinerType": "str",
+	"accumulate": true,
+	"timeout": "",
+	"count": "1",
+	"x": 1259,
+	"y": 332,
+	"wires": [["bb4250b0.202cf"]]
+},{
+	"id": "9248a616.7c1628",
+	"type": "cloudant in",
+	"z": "8cb5f64b.41d138",
+	"name": "accesso al database",
+	"cloudant": "",
+	"database": "prodotti",
+	"service": "Cloudant NoSQL DB-wr",
+	"search": "_all_",
+	"design": "design document",
+	"index": "indexname:nome corrente",
+	"x": 1072.1666259765625,
+	"y": 313.4166259765625,
+	"wires": [["15b09f74.f47531"]]
+},{
+	"id": "84ff412d.7101c",
+	"type": "switch",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"property": "payload.conversation",
+	"propertyType": "msg",
+	"rules": [{
+		"t": "true"
+	},
+	{
+		"t": "else"
+	}],
+	"checkall": "true",
+	"outputs": 2,
+	"x": 930,
+	"y": 456,
+	"wires": [["9248a616.7c1628",
+	"15b09f74.f47531"],
+	["5f6dcc7d.ed7944"]]
+},{
+	"id": "64ab6a07.acf334",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "Decision",
+	"func": "var threshold = 0.1;\n//if (msg.payload.intents.length === 0 && msg.payload.input.text!=\"init\") {\nif (msg.payload.output.nodes_visited[0]==\"In altri casi\"){\n    msg.payload.conversation = false;\n} else {\n    msg.payload.conversation = true;\n}\nreturn msg;",
+	"outputs": "1",
+	"noerr": 0,
+	"x": 828,
+	"y": 344,
+	"wires": [["84ff412d.7101c",
+	"142a43f4.c1e2dc"]]
+},{
+	"id": "5f6dcc7d.ed7944",
+	"type": "http response",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"statusCode": "",
+	"headers": {
+		
+	},
+	"x": 1114,
+	"y": 462,
+	"wires": []
+},{
+	"id": "bdb483b4.c3701",
+	"type": "change",
+	"z": "8cb5f64b.41d138",
+	"name": "Setta conversation",
+	"rules": [{
+		"t": "set",
+		"p": "payload.conversation",
+		"pt": "msg",
+		"to": "true",
+		"tot": "bool"
+	}],
+	"action": "",
+	"property": "",
+	"from": "",
+	"to": "",
+	"reg": false,
+	"x": 708,
+	"y": 454,
+	"wires": [["64ab6a07.acf334"]]
+},{
+	"id": "142a43f4.c1e2dc",
+	"type": "debug",
+	"z": "8cb5f64b.41d138",
+	"name": "",
+	"active": true,
+	"console": "false",
+	"complete": "true",
+	"x": 990.25,
+	"y": 261.03485107421875,
+	"wires": []
+},{
+	"id": "1e75509f.f05bdf",
+	"type": "watson-conversation-v1",
+	"z": "8cb5f64b.41d138",
+	"name": "Conversation",
+	"workspaceid": "4d346989-19b4-4933-b3ec-a21b27b0719c",
+	"multiuser": false,
+	"context": true,
+	"empty-payload": false,
+	"default-endpoint": true,
+	"service-endpoint": "https://gateway.watsonplatform.net/conversation/api",
+	"x": 582,
+	"y": 361,
+	"wires": [["bdb483b4.c3701"]]
+},{
+	"id": "9f512930.9bfa58",
+	"type": "function",
+	"z": "8cb5f64b.41d138",
+	"name": "Preprocessing",
+	"func": "msg.params = msg.params || {};\nmsg.params.context = msg.payload.context;\nmsg.payload = msg.payload.message;\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"x": 440,
+	"y": 458.7848815917969,
+	"wires": [["1e75509f.f05bdf"]]
+},{
+	"id": "249d40e5.c535c",
+	"type": "http in",
+	"z": "8cb5f64b.41d138",
+	"name": "BOT REST API",
+	"url": "/botchat",
+	"method": "post",
+	"upload": false,
+	"swaggerDoc": "",
+	"x": 220,
+	"y": 460.78487396240234,
+	"wires": [["9f512930.9bfa58"]]
+}]
