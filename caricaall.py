@@ -135,7 +135,7 @@ for document in sampleData:
   "quantita": quantita
  }
 
- # Create a document using the Database API. Aggiunta
+ # Create a document using the Database API. 
  newDocument = myDatabase.create_document(jsonDocument)
 
  # Check that the document exists in the database.
